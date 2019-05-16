@@ -18,7 +18,6 @@
 #include <bootmode.h>
 #include <console/console.h>
 #include <console/vtxprintf.h>
-#include <delay.h>
 #include <string.h>
 #include <timestamp.h>
 #include <vb2_api.h>
@@ -324,10 +323,6 @@ void verstage_main(void)
 			die("Initializing measured boot mode failed!");
 	}
 
-	if (CONFIG(VBOOT_PHYSICAL_DEV_SWITCH) &&
-		get_developer_mode_switch())
-		ctx.flags |= VB2_CONTEXT_FORCE_DEVELOPER_MODE;
-
 	if (get_recovery_mode_switch()) {
 		ctx.flags |= VB2_CONTEXT_FORCE_RECOVERY_MODE;
 		if (CONFIG(VBOOT_DISABLE_DEV_ON_RECOVERY))
@@ -340,6 +335,10 @@ void verstage_main(void)
 
 	if (CONFIG(VBOOT_LID_SWITCH) && !get_lid_switch())
 		ctx.flags |= VB2_CONTEXT_NOFAIL_BOOT;
+
+	/* Mainboard/SoC always initializes display. */
+	if (!CONFIG(VBOOT_MUST_REQUEST_DISPLAY))
+		ctx.flags |= VB2_CONTEXT_DISPLAY_INIT;
 
 	/* Do early init (set up secdata and NVRAM, load GBB) */
 	printk(BIOS_INFO, "Phase 1\n");
@@ -364,6 +363,11 @@ void verstage_main(void)
 		save_if_needed(&ctx);
 		vboot_reboot();
 	}
+
+	/* Is vboot declaring that display is available?  If so, we should mark
+	   it down, so that the mainboard/SoC knows to initialize display. */
+	if (ctx.flags & VB2_CONTEXT_DISPLAY_INIT)
+		vboot_get_working_data()->flags |= VBOOT_WD_FLAG_DISPLAY_INIT;
 
 	/* Determine which firmware slot to boot (based on NVRAM) */
 	printk(BIOS_INFO, "Phase 2\n");

@@ -15,17 +15,16 @@
 
 #include <device/mmio.h>
 #include <device/pci_ops.h>
-#include <delay.h>
 #include <device/device.h>
 #include <device/pci.h>
 #include <intelblocks/systemagent.h>
 #include <soc/iomap.h>
 #include <soc/pci_devs.h>
 #include <soc/systemagent.h>
-#include "systemagent_def.h"
-#include <timer.h>
 
-#if !ENV_RAMSTAGE
+#include "systemagent_def.h"
+
+#if ENV_BOOTBLOCK
 void bootblock_systemagent_early_init(void)
 {
 	uint32_t reg;

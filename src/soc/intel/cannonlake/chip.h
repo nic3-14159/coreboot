@@ -21,6 +21,7 @@
 #include <intelblocks/chip.h>
 #include <drivers/i2c/designware/dw_i2c.h>
 #include <intelblocks/gspi.h>
+#include <smbios.h>
 #include <stdint.h>
 #include <soc/gpio.h>
 #include <soc/pch.h>
@@ -138,6 +139,15 @@ struct soc_intel_cannonlake_config {
 	uint8_t SataPortsEnable[8];
 	uint8_t SataPortsDevSlp[8];
 
+	/* Enable/Disable SLP_S0 with GBE Support. 0: disable, 1: enable */
+	uint8_t SlpS0WithGbeSupport;
+	/* SLP_S0 Voltage Margining Policy. 0: disable, 1: enable */
+	uint8_t PchPmSlpS0VmRuntimeControl;
+	/* SLP_S0 Voltage Margining  0.70V Policy. 0: disable, 1: enable */
+	uint8_t PchPmSlpS0Vm070VSupport;
+	/* SLP_S0 Voltage Margining  0.75V Policy. 0: disable, 1: enable */
+	uint8_t PchPmSlpS0Vm075VSupport;
+
 	/* Audio related */
 	uint8_t PchHdaDspEnable;
 
@@ -158,10 +168,10 @@ struct soc_intel_cannonlake_config {
 	/* PCIe output clocks type to Pcie devices.
 	 * 0-23: PCH rootport, 0x70: LAN, 0x80: unspecified but in use,
 	 * 0xFF: not used */
-	uint8_t PcieClkSrcUsage[CONFIG_MAX_ROOT_PORTS];
+	uint8_t PcieClkSrcUsage[CONFIG_MAX_PCIE_CLOCKS];
 	/* PCIe ClkReq-to-ClkSrc mapping, number of clkreq signal assigned to
 	 * clksrc. */
-	uint8_t PcieClkSrcClkReq[CONFIG_MAX_ROOT_PORTS];
+	uint8_t PcieClkSrcClkReq[CONFIG_MAX_PCIE_CLOCKS];
 	/* PCIe LTR(Latency Tolerance Reporting) mechanism */
 	uint8_t PcieRpLtrEnable[CONFIG_MAX_ROOT_PORTS];
 	/* Enable/Disable HotPlug support for Root Port */
@@ -283,15 +293,6 @@ struct soc_intel_cannonlake_config {
 	 */
 	uint8_t PchPmSlpAMinAssert;
 
-	/* Desired platform debug type. */
-	enum {
-		DebugConsent_Disabled,
-		DebugConsent_DCI_DBC,
-		DebugConsent_DCI,
-		DebugConsent_USB3_DBC,
-		DebugConsent_XDP, /* XDP/Mipi60 */
-		DebugConsent_USB2_DBC,
-	} DebugConsent;
 	/*
 	 * SerialIO device mode selection:
 	 *
@@ -342,10 +343,6 @@ struct soc_intel_cannonlake_config {
 
 	/* Enable Pch iSCLK */
 	uint8_t pch_isclk;
-
-	/* Intel VT configuration */
-	uint8_t VtdDisable;
-	uint8_t VmxEnable;
 
 	/*
 	 * Acoustic Noise Mitigation
@@ -398,6 +395,13 @@ struct soc_intel_cannonlake_config {
 	uint8_t DdiPortCDdc;
 	uint8_t DdiPortDDdc;
 	uint8_t DdiPortFDdc;
+
+	/* Unlock all GPIO Pads */
+	uint8_t PchUnlockGpioPads;
+
+	/* Enable GBE wakeup */
+	uint8_t LanWakeFromDeepSx;
+	uint8_t WolEnableOverride;
 };
 
 typedef struct soc_intel_cannonlake_config config_t;

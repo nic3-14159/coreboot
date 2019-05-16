@@ -14,14 +14,17 @@
  */
 
 #include <assert.h>
-#include <chip.h>
+#include <cpu/x86/msr.h>
 #include <console/console.h>
 #include <fsp/util.h>
 #include <intelblocks/pmclib.h>
 #include <soc/iomap.h>
+#include <soc/msr.h>
 #include <soc/pci_devs.h>
 #include <soc/romstage.h>
 #include <vendorcode/google/chromeos/chromeos.h>
+
+#include "../chip.h"
 
 static void soc_memory_init_params(FSP_M_CONFIG *m_cfg, const config_t *config)
 {
@@ -59,29 +62,17 @@ static void soc_memory_init_params(FSP_M_CONFIG *m_cfg, const config_t *config)
 	m_cfg->PcdDebugInterfaceFlags =
 				CONFIG(DRIVERS_UART_8250IO) ? 0x02 : 0x10;
 
-	/* Disable Vmx if Vt-d is already disabled */
-	if (config->VtdDisable)
-		m_cfg->VmxEnable = 0;
-	else
-		m_cfg->VmxEnable = config->VmxEnable;
+	/* Change VmxEnable UPD value according to ENABLE_VMX Kconfig */
+	m_cfg->VmxEnable = CONFIG(ENABLE_VMX);
 
 #if CONFIG(SOC_INTEL_COMMON_CANNONLAKE_BASE)
 	m_cfg->SkipMpInit = !CONFIG_USE_INTEL_FSP_MP_INIT;
 #endif
 
-	/* Disable CPU Flex Ratio and SaGv in recovery mode */
-	if (vboot_recovery_mode_enabled()) {
-		struct chipset_power_state *ps = pmc_get_power_state();
-
-		/*
-		 * Only disable when coming from S5 (cold reset) otherwise
-		 * the flex ratio may be locked and FSP will return an error.
-		 */
-		if (ps && ps->prev_sleep_state == ACPI_S5) {
-			m_cfg->CpuRatio = 0;
-			m_cfg->SaGv = 0;
-		}
-	}
+	/* Set CpuRatio to match existing MSR value */
+	msr_t flex_ratio;
+	flex_ratio = rdmsr(MSR_FLEX_RATIO);
+	m_cfg->CpuRatio = (flex_ratio.lo >> 8) & 0xff;
 
 	/* If ISH is enabled, enable ISH elements */
 	if (!dev)
@@ -110,6 +101,7 @@ void platform_fsp_memory_init_params_cb(FSPM_UPD *mupd, uint32_t version)
 	assert(dev != NULL);
 	const config_t *config = dev->chip_info;
 	FSP_M_CONFIG *m_cfg = &mupd->FspmConfig;
+	FSP_M_TEST_CONFIG *tconfig = &mupd->FspmTestConfig;
 
 	soc_memory_init_params(m_cfg, config);
 
@@ -118,8 +110,13 @@ void platform_fsp_memory_init_params_cb(FSPM_UPD *mupd, uint32_t version)
 		m_cfg->SmbusEnable = 0;
 	else
 		m_cfg->SmbusEnable = smbus->enabled;
+
 	/* Set debug probe type */
-	m_cfg->PlatformDebugConsent = config->DebugConsent;
+	m_cfg->PlatformDebugConsent =
+		CONFIG_SOC_INTEL_CANNONLAKE_DEBUG_CONSENT;
+
+	/* Configure VT-d */
+	tconfig->VtdDisable = 0;
 
 	mainboard_memory_init_params(mupd);
 }

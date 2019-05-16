@@ -18,11 +18,11 @@
 #include <console/console.h>
 #include <delay.h>
 #include <device/i2c_simple.h>
+#include <reset.h>
 #include <stdint.h>
 #include <stdlib.h>
 
 #include "pmic.h"
-#include "reset.h"
 
 enum {
 	MAX77620_I2C_ADDR = 0x3c
@@ -32,10 +32,6 @@ struct max77620_init_reg {
 	u8 reg;
 	u8 val;
 	u8 delay;
-};
-
-static struct max77620_init_reg init_list[] = {
-	/* TODO */
 };
 
 static void pmic_write_reg(unsigned bus, uint8_t reg, uint8_t val, int delay)
@@ -51,20 +47,8 @@ static void pmic_write_reg(unsigned bus, uint8_t reg, uint8_t val, int delay)
 	}
 }
 
-static void pmic_slam_defaults(unsigned bus)
-{
-	int i;
-	for (i = 0; i < ARRAY_SIZE(init_list); i++) {
-		struct max77620_init_reg *reg = &init_list[i];
-		pmic_write_reg(bus, reg->reg, reg->val, reg->delay);
-	}
-}
-
 void pmic_init(unsigned bus)
 {
-	/* Restore PMIC POR defaults, in case kernel changed 'em */
-	pmic_slam_defaults(bus);
-
 	/* Setup/Enable GPIO5 - VDD_CPU_REG_EN */
 	pmic_write_reg(bus, MAX77620_GPIO5_REG, 0x09, 1);
 

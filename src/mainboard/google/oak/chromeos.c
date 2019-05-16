@@ -35,8 +35,7 @@ void fill_lb_gpios(struct lb_gpios *gpios)
 {
 	struct lb_gpio chromeos_gpios[] = {
 		{WRITE_PROTECT.id, ACTIVE_LOW,
-			gpio_get(WRITE_PROTECT), "write protect"},
-		{-1, ACTIVE_HIGH, get_recovery_mode_switch(), "recovery"},
+			!get_write_protect_state(), "write protect"},
 		{LID.id, ACTIVE_HIGH, -1, "lid"},
 		{POWER_BUTTON.id, ACTIVE_HIGH, -1, "power"},
 		{EC_IN_RW.id, ACTIVE_HIGH, -1, "EC in RW"},

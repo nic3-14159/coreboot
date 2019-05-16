@@ -17,16 +17,15 @@
  * so this one is named with prefix mainboard.
  */
 
-#include <arch/io.h>
-#include <lib.h>
 #include <timestamp.h>
 #include <console/console.h>
 #include <device/pci_ops.h>
 #include <cbmem.h>
-#include <halt.h>
+#include <cf9_reset.h>
 #include <romstage_handoff.h>
 #include <southbridge/intel/i82801gx/i82801gx.h>
 #include <southbridge/intel/common/gpio.h>
+#include <southbridge/intel/common/pmclib.h>
 #include <cpu/intel/romstage.h>
 #include <cpu/x86/bist.h>
 #include <cpu/x86/lapic.h>
@@ -105,8 +104,6 @@ void mainboard_romstage_entry(unsigned long bist)
 
 	post_code(0x31);
 
-	quick_ram_check();
-
 	mb_pirq_setup();
 
 	rcba_config();
@@ -115,8 +112,7 @@ void mainboard_romstage_entry(unsigned long bist)
 
 	if (!cbmem_was_initted && s3resume) {
 		/* Failed S3 resume, reset to come up cleanly */
-		outb(0x6, 0xcf9);
-		halt();
+		system_reset();
 	}
 
 	romstage_handoff_init(s3resume);

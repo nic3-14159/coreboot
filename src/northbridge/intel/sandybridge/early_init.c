@@ -20,27 +20,12 @@
 #include <arch/io.h>
 #include <device/pci_ops.h>
 #include <device/pci_def.h>
-#include <elog.h>
 #include <pc80/mc146818rtc.h>
 #include <romstage_handoff.h>
 #include "sandybridge.h"
 
 static void sandybridge_setup_bars(void)
 {
-	/* Setting up Southbridge. In the northbridge code. */
-	printk(BIOS_DEBUG, "Setting up static southbridge registers...");
-	pci_write_config32(PCH_LPC_DEV, RCBA, (uintptr_t)DEFAULT_RCBA | 1);
-
-	pci_write_config32(PCH_LPC_DEV, PMBASE, DEFAULT_PMBASE | 1);
-	pci_write_config8(PCH_LPC_DEV, ACPI_CNTL, 0x80); /* Enable ACPI BAR */
-
-	printk(BIOS_DEBUG, " done.\n");
-
-	printk(BIOS_DEBUG, "Disabling Watchdog reboot...");
-	RCBA32(GCS) = RCBA32(GCS) | (1 << 5);	/* No reset */
-	outw((1 << 11), DEFAULT_PMBASE | 0x60 | 0x08);	/* halt timer */
-	printk(BIOS_DEBUG, " done.\n");
-
 	printk(BIOS_DEBUG, "Setting up static northbridge registers...");
 	/* Set up all hardcoded northbridge BARs */
 	pci_write_config32(PCI_DEV(0, 0x00, 0), EPBAR, DEFAULT_EPBAR | 1);
@@ -59,22 +44,7 @@ static void sandybridge_setup_bars(void)
 	pci_write_config8(PCI_DEV(0, 0x00, 0), PAM5, 0x33);
 	pci_write_config8(PCI_DEV(0, 0x00, 0), PAM6, 0x33);
 
-#if CONFIG(ELOG_BOOT_COUNT)
-	/* Increment Boot Counter for non-S3 resume */
-	if ((inw(DEFAULT_PMBASE + PM1_STS) & WAK_STS) &&
-	    ((inl(DEFAULT_PMBASE + PM1_CNT) >> 10) & 7) != SLP_TYP_S3)
-		boot_count_increment();
-#endif
-
-	printk(BIOS_DEBUG, " done.\n");
-
-#if CONFIG(ELOG_BOOT_COUNT)
-	/* Increment Boot Counter except when resuming from S3 */
-	if ((inw(DEFAULT_PMBASE + PM1_STS) & WAK_STS) &&
-	    ((inl(DEFAULT_PMBASE + PM1_CNT) >> 10) & 7) == SLP_TYP_S3)
-		return;
-	boot_count_increment();
-#endif
+	printk(BIOS_DEBUG, " done\n");
 }
 
 static void sandybridge_setup_graphics(void)

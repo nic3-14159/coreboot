@@ -22,7 +22,6 @@
 #include <device/mmio.h>
 #include <device/pci_ops.h>
 #include <arch/cbfs.h>
-#include <chip.h>
 #include <cpu/x86/mtrr.h>
 #include <console/console.h>
 #include <device/device.h>
@@ -30,8 +29,6 @@
 #include <elog.h>
 #include <mrc_cache.h>
 #include <string.h>
-#include <timestamp.h>
-#include <reset.h>
 #include <vendorcode/google/chromeos/chromeos.h>
 #include <fsp/util.h>
 #include <soc/gpio.h>
@@ -44,6 +41,8 @@
 #include <soc/spi.h>
 #include <build.h>
 #include <pc80/mc146818rtc.h>
+
+#include "../chip.h"
 
 void program_base_addresses(void)
 {

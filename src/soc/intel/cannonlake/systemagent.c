@@ -18,10 +18,12 @@
 #include <device/device.h>
 #include <delay.h>
 #include <device/pci.h>
+#include <device/pci_ops.h>
 #include <intelblocks/systemagent.h>
 #include <soc/cpu.h>
 #include <soc/iomap.h>
 #include <soc/systemagent.h>
+#include "chip.h"
 
 /*
  * SoC implementation
@@ -54,6 +56,13 @@ void soc_add_fixed_mmio_resources(struct device *dev, int *index)
 
 	sa_add_fixed_mmio_resources(dev, index, soc_fixed_resources,
 			ARRAY_SIZE(soc_fixed_resources));
+
+	/* Add Vt-d resources if VT-d is enabled. */
+	if ((pci_read_config32(dev, CAPID0_A) & VTD_DISABLE))
+		return;
+
+	sa_add_fixed_mmio_resources(dev, index, soc_vtd_resources,
+			ARRAY_SIZE(soc_vtd_resources));
 }
 
 /*

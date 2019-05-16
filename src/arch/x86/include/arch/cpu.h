@@ -158,6 +158,47 @@ static inline unsigned int cpuid_edx(unsigned int op)
 #define CPUID_FEATURE_PAE (1 << 6)
 #define CPUID_FEATURE_PSE36 (1 << 17)
 
+// Intel leaf 0x4, AMD leaf 0x8000001d EAX
+
+#define CPUID_CACHE(x, res) \
+	(((res) >> CPUID_CACHE_##x##_SHIFT) & CPUID_CACHE_##x##_MASK)
+
+#define CPUID_CACHE_FULL_ASSOC_SHIFT 9
+#define CPUID_CACHE_FULL_ASSOC_MASK 0x1
+#define CPUID_CACHE_FULL_ASSOC(res) CPUID_CACHE(FULL_ASSOC, (res).eax)
+
+#define CPUID_CACHE_SELF_INIT_SHIFT 8
+#define CPUID_CACHE_SELF_INIT_MASK 0x1
+#define CPUID_CACHE_SELF_INIT(res) CPUID_CACHE(SELF_INIT, (res).eax)
+
+#define CPUID_CACHE_LEVEL_SHIFT 5
+#define CPUID_CACHE_LEVEL_MASK 0x7
+#define CPUID_CACHE_LEVEL(res) CPUID_CACHE(LEVEL, (res).eax)
+
+#define CPUID_CACHE_TYPE_SHIFT 0
+#define CPUID_CACHE_TYPE_MASK 0x1f
+#define CPUID_CACHE_TYPE(res) CPUID_CACHE(TYPE, (res).eax)
+
+// Intel leaf 0x4, AMD leaf 0x8000001d EBX
+
+#define CPUID_CACHE_WAYS_OF_ASSOC_SHIFT 22
+#define CPUID_CACHE_WAYS_OF_ASSOC_MASK 0x3ff
+#define CPUID_CACHE_WAYS_OF_ASSOC(res) CPUID_CACHE(WAYS_OF_ASSOC, (res).ebx)
+
+#define CPUID_CACHE_PHYS_LINE_SHIFT 12
+#define CPUID_CACHE_PHYS_LINE_MASK 0x3ff
+#define CPUID_CACHE_PHYS_LINE(res) CPUID_CACHE(PHYS_LINE, (res).ebx)
+
+#define CPUID_CACHE_COHER_LINE_SHIFT 0
+#define CPUID_CACHE_COHER_LINE_MASK 0xfff
+#define CPUID_CACHE_COHER_LINE(res) CPUID_CACHE(COHER_LINE, (res).ebx)
+
+// Intel leaf 0x4, AMD leaf 0x8000001d ECX
+
+#define CPUID_CACHE_NO_OF_SETS_SHIFT 0
+#define CPUID_CACHE_NO_OF_SETS_MASK 0xffffffff
+#define CPUID_CACHE_NO_OF_SETS(res) CPUID_CACHE(NO_OF_SETS, (res).ecx)
+
 int cpu_cpuid_extended_level(void);
 int cpu_have_cpuid(void);
 
@@ -165,6 +206,16 @@ void smm_init(void);
 void smm_init_completion(void);
 void smm_lock(void);
 void smm_setup_structures(void *gnvs, void *tcg, void *smi1);
+
+static inline bool cpu_is_amd(void)
+{
+	return CONFIG(CPU_AMD_AGESA) || CONFIG(CPU_AMD_PI);
+}
+
+static inline bool cpu_is_intel(void)
+{
+	return CONFIG(CPU_INTEL_COMMON) || CONFIG(SOC_INTEL_COMMON);
+}
 
 #ifndef __SIMPLE_DEVICE__
 
@@ -209,13 +260,6 @@ static inline struct cpu_info *cpu_info(void)
 		"r" (CONFIG_STACK_SIZE - sizeof(struct cpu_info))
 	);
 	return ci;
-}
-
-static inline unsigned long cpu_index(void)
-{
-	struct cpu_info *ci;
-	ci = cpu_info();
-	return ci->index;
 }
 #endif
 
@@ -322,5 +366,19 @@ uint32_t cpu_get_feature_flags_ecx(void);
  * return value in EDX register
  */
 uint32_t cpu_get_feature_flags_edx(void);
+
+/*
+ * Previously cpu_index() implementation assumes that cpu_index()
+ * function will always getting called from coreboot context
+ * (ESP stack pointer will always refer to coreboot).
+ *
+ * But with FSP_USES_MP_SERVICES_PPI implementation in coreboot this
+ * assumption might not be true, where FSP context (stack pointer refers
+ * to FSP) will request to get cpu_index().
+ *
+ * Hence new logic to use cpuid to fetch lapic id and matches with
+ * cpus_default_apic_id[] variable to return correct cpu_index().
+ */
+unsigned long cpu_index(void);
 
 #endif /* ARCH_CPU_H */

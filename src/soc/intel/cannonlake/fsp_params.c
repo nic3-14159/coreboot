@@ -13,7 +13,6 @@
  * GNU General Public License for more details.
  */
 
-#include <chip.h>
 #include <console/console.h>
 #include <device/device.h>
 #include <device/pci.h>
@@ -24,6 +23,8 @@
 #include <soc/pci_devs.h>
 #include <soc/ramstage.h>
 #include <string.h>
+
+#include "chip.h"
 
 static const int serial_io_dev[] = {
 	PCH_DEVFN_I2C0,
@@ -64,7 +65,7 @@ static uint8_t get_param_value(const config_t *config, uint32_t dev_offset)
 	return PCH_SERIAL_IO_INDEX(config->SerialIoDevMode[dev_offset]);
 }
 
-#if IS_ENABLED(CONFIG_SOC_INTEL_COMETLAKE)
+#if CONFIG(SOC_INTEL_COMETLAKE)
 static void parse_devicetree_param(const config_t *config, FSP_S_CONFIG *params)
 {
 	uint32_t dev_offset = 0;
@@ -105,6 +106,17 @@ static void parse_devicetree(FSP_S_CONFIG *params)
 	const config_t *config = dev->chip_info;
 
 	parse_devicetree_param(config, params);
+}
+
+/* Ignore LTR value for GBE devices */
+static void ignore_gbe_ltr(void)
+{
+	uint8_t reg8;
+	uint8_t *pmcbase = pmc_mmio_regs();
+
+	reg8 = read8(pmcbase + LTR_IGN);
+	reg8 |= IGN_GBE;
+	write8(pmcbase + LTR_IGN, reg8);
 }
 
 /* UPD parameters to be initialized before SiliconInit */
@@ -161,8 +173,16 @@ void platform_fsp_silicon_init_params_cb(FSPS_UPD *supd)
 	dev = dev_find_slot(0, PCH_DEVFN_GBE);
 	if (!dev)
 		params->PchLanEnable = 0;
-	else
+	else {
 		params->PchLanEnable = dev->enabled;
+		if (config->s0ix_enable) {
+			params->SlpS0WithGbeSupport = 1;
+			params->PchPmSlpS0VmRuntimeControl = 0;
+			params->PchPmSlpS0Vm070VSupport = 0;
+			params->PchPmSlpS0Vm075VSupport = 0;
+			ignore_gbe_ltr();
+		}
+	}
 
 	/* Audio */
 	params->PchHdaDspEnable = config->PchHdaDspEnable;
@@ -191,6 +211,10 @@ void platform_fsp_silicon_init_params_cb(FSPS_UPD *supd)
 	params->DdiPortCDdc = config->DdiPortCDdc;
 	params->DdiPortDDdc = config->DdiPortDDdc;
 	params->DdiPortFDdc = config->DdiPortFDdc;
+
+	/* WOL */
+	params->PchPmPcieWakeFromDeepSx = config->LanWakeFromDeepSx;
+	params->PchPmWolEnableOverride = config->WolEnableOverride;
 
 	/* S0ix */
 	params->PchPmSlpS0Enable = config->s0ix_enable;
@@ -226,19 +250,28 @@ void platform_fsp_silicon_init_params_cb(FSPS_UPD *supd)
 
 	/* Enable xDCI controller if enabled in devicetree and allowed */
 	dev = dev_find_slot(0, PCH_DEVFN_USBOTG);
-	if (!xdci_can_enable())
-		dev->enabled = 0;
-	params->XdciEnable = dev->enabled;
+	if (dev) {
+		if (!xdci_can_enable())
+			dev->enabled = 0;
+		params->XdciEnable = dev->enabled;
+	} else
+		params->XdciEnable = 0;
 
 	/* Set Debug serial port */
 	params->SerialIoDebugUartNumber = CONFIG_UART_FOR_CONSOLE;
 
 	/* Enable CNVi Wifi if enabled in device tree */
 	dev = dev_find_slot(0, PCH_DEVFN_CNViWIFI);
-#if IS_ENABLED(CONFIG_SOC_INTEL_COMETLAKE)
-	params->CnviMode = dev->enabled;
+#if CONFIG(SOC_INTEL_COMETLAKE)
+	if (dev)
+		params->CnviMode = dev->enabled;
+	else
+		params->CnviMode = 0;
 #else
-	params->PchCnviMode = dev->enabled;
+	if (dev)
+		params->PchCnviMode = dev->enabled;
+	else
+		params->PchCnviMode = 0;
 #endif
 	/* PCI Express */
 	for (i = 0; i < ARRAY_SIZE(config->PcieClkSrcUsage); i++) {
@@ -321,6 +354,9 @@ void platform_fsp_silicon_init_params_cb(FSPS_UPD *supd)
 
 	/* Set TccActivationOffset */
 	tconfig->TccActivationOffset = config->tcc_offset;
+
+	/* Unlock all GPIO pads */
+	tconfig->PchUnlockGpioPads = config->PchUnlockGpioPads;
 }
 
 /* Mainboard GPIO Configuration */

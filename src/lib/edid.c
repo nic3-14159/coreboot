@@ -1002,6 +1002,7 @@ parse_extension(struct edid *out, unsigned char *x, struct edid_context *c)
 		break;
 	case 0xFF:
 		printk(BIOS_SPEW, "Manufacturer-specific extension block\n");
+		break;
 	default:
 		printk(BIOS_SPEW, "Unknown extension block\n");
 		break;
@@ -1138,12 +1139,17 @@ int decode_edid(unsigned char *edid, int size, struct edid *out)
 	    .conformant = EDID_CONFORMANT,
 	};
 
-	dump_breakdown(edid);
-
 	memset(out, 0, sizeof(*out));
 
-	if (!edid || memcmp(edid, "\x00\xFF\xFF\xFF\xFF\xFF\xFF\x00", 8)) {
-		printk(BIOS_SPEW, "No header found\n");
+	if (!edid) {
+		printk(BIOS_ERR, "No EDID found\n");
+		return EDID_ABSENT;
+	}
+
+	dump_breakdown(edid);
+
+	if (memcmp(edid, "\x00\xFF\xFF\xFF\xFF\xFF\xFF\x00", 8)) {
+		printk(BIOS_ERR, "No header found\n");
 		return EDID_ABSENT;
 	}
 

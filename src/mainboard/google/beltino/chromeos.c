@@ -26,7 +26,6 @@
 
 #define FLAG_SPI_WP	0
 #define FLAG_REC_MODE	1
-#define FLAG_DEV_MODE	2
 
 #if ENV_RAMSTAGE
 #include <boot/coreboot_tables.h>
@@ -34,9 +33,10 @@
 void fill_lb_gpios(struct lb_gpios *gpios)
 {
 	struct lb_gpio chromeos_gpios[] = {
-		{GPIO_SPI_WP, ACTIVE_HIGH, 0, "write protect"},
+		{GPIO_SPI_WP, ACTIVE_HIGH,
+			get_write_protect_state(), "write protect"},
 		{GPIO_REC_MODE, ACTIVE_LOW,
-			get_recovery_mode_switch(), "recovery"},
+			!get_recovery_mode_switch(), "presence"},
 		{-1, ACTIVE_HIGH, 1, "lid"},
 		{-1, ACTIVE_HIGH, 0, "power"},
 		{-1, ACTIVE_HIGH, gfx_get_init_done(), "oprom"},

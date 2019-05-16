@@ -17,12 +17,12 @@
 
 #include <console/cbmem_console.h>
 #include <console/console.h>
-#include <reset.h>
 #include <security/tpm/tspi.h>
 #include <security/tpm/tss.h>
 #include <stdlib.h>
 #if CONFIG(VBOOT)
 #include <vb2_api.h>
+#include <vb2_sha.h>
 #include <assert.h>
 #endif
 

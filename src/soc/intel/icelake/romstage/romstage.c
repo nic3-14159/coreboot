@@ -13,8 +13,6 @@
  * GNU General Public License for more details.
  */
 
-#include <assert.h>
-#include <chip.h>
 #include <cpu/x86/mtrr.h>
 #include <cbmem.h>
 #include <console/console.h>
@@ -31,7 +29,7 @@
 #include <string.h>
 #include <timestamp.h>
 
-static struct chipset_power_state power_state;
+#include "../chip.h"
 
 #define FSP_SMBIOS_MEMORY_INFO_GUID	\
 {	\
@@ -111,7 +109,7 @@ asmlinkage void car_stage_entry(void)
 	bool s3wake;
 	struct postcar_frame pcf;
 	uintptr_t top_of_ram;
-	struct chipset_power_state *ps = &power_state;
+	struct chipset_power_state *ps = pmc_get_power_state();
 
 	console_init();
 

@@ -23,13 +23,11 @@
 #include <device/pci_ops.h>
 #include <device/pci_def.h>
 #include <cpu/x86/lapic.h>
-#include <lib.h>
 #include <romstage_handoff.h>
 #include <console/console.h>
 #include <cpu/x86/bist.h>
 #include <cpu/intel/romstage.h>
 #include <ec/acpi/ec.h>
-#include <delay.h>
 #include <timestamp.h>
 #include <arch/acpi.h>
 
@@ -170,13 +168,9 @@ void mainboard_romstage_entry(unsigned long bist)
 	int s3resume = 0;
 	const u8 spd_addrmap[4] = { 0x50, 0, 0x52, 0 };
 
-	timestamp_init(timestamp_get());
-
 	/* SERR pin is confused on reset. Clear NMI.  */
 	outb(4, 0x61);
 	outb(0, 0x61);
-
-	timestamp_add_now(TS_START_ROMSTAGE);
 
 	if (bist == 0)
 		enable_lapic();
@@ -266,7 +260,4 @@ void mainboard_romstage_entry(unsigned long bist)
 	}
 
 	romstage_handoff_init(s3resume);
-
-	if (!s3resume)
-		quick_ram_check();
 }
