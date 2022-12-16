@@ -1,0 +1,2 @@
+config BOARD_LENOVO_M900
+	bool "ThinkCentre M900"

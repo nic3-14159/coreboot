@@ -1,0 +1,33 @@
+if BOARD_LENOVO_M900
+
+config BOARD_SPECIFIC_OPTIONS
+	def_bool y
+	select BOARD_ROMSIZE_KB_16384
+	select HAVE_ACPI_RESUME
+	select HAVE_ACPI_TABLES
+	select HAVE_OPTION_TABLE
+	select HAVE_CMOS_DEFAULT
+	select INTEL_GMA_HAVE_VBT
+	select INTEL_INT15
+	select SOC_INTEL_SKYLAKE
+	select SKYLAKE_SOC_PCH_H
+	select SUPERIO_NUVOTON_COMMON_PRE_RAM
+	select MAINBOARD_HAS_LIBGFXINIT
+
+config DISABLE_HECI1_AT_PRE_BOOT
+	default y
+
+config MAINBOARD_DIR
+	default "lenovo/m900"
+
+config MAINBOARD_PART_NUMBER
+	default "M900"
+
+config PRERAM_CBMEM_CONSOLE_SIZE
+	hex
+	default 0xd00
+
+config DIMM_SPD_SIZE
+	default 512 #DDR4
+
+endif
