@@ -121,17 +121,25 @@ Wikipedia). While not all of them were evaluated, because that would take an
 excessive amount of time, couple of them were selected based on the good
 opinions among C devs, popularity and fitting above criteria.
 
-* [SputUnit](https://www.use-strict.de/sput-unit-testing/)
-* [GoogleTest](https://github.com/google/googletest)
-* [Cmocka](https://cmocka.org/)
-* [Unity](http://www.throwtheswitch.org/unity) (CMock, Ceedling)
+```{toctree}
+:maxdepth: 1
+
+SputUnit <https://www.use-strict.de/sput-unit-testing/>
+GoogleTest <https://github.com/google/googletest>
+Cmocka <https://cmocka.org/>
+Unity <http://www.throwtheswitch.org/unity) (CMock, Ceedling>
+```
 
 We looked at several other test frameworks, but decided not to do a full evaluation
 for various reasons such as functionality, size of the developer community, or
 compatibility.
 
 ### Evaluation
-* [SputUnit](https://www.use-strict.de/sput-unit-testing/)
+```{toctree}
+:maxdepth: 1
+
+SputUnit <https://www.use-strict.de/sput-unit-testing/>
+```
   * Pros
     * No dependencies, one header file to include - that’s all
     * Pure C
@@ -145,7 +153,11 @@ compatibility.
     * No support for mocks
     * Not too popular
     * No automatic test registration
-* [GoogleTest](https://github.com/google/googletest)
+```{toctree}
+:maxdepth: 1
+
+GoogleTest <https://github.com/google/googletest>
+```
   * Pros
     * Automatic test registration
     * Support for different output formats (including XML for Jenkins)
@@ -159,7 +171,11 @@ compatibility.
   * Cons
     * Requires C++11 compiler
     * To make most out of it (use GMock) C++ knowledge is required
-* [Cmocka](https://cmocka.org/)
+```{toctree}
+:maxdepth: 1
+
+Cmocka <https://cmocka.org/>
+```
   * Pros
     * Self-contained, autonomous framework
     * Pure C
@@ -173,7 +189,11 @@ compatibility.
     * No automatic test registration
     * It will require some effort to make it work from within an IDE
     * Apache 2.0 license (not compatible with GPLv2)
-* [Unity](http://www.throwtheswitch.org/unity) (CMock, Ceedling)
+```{toctree}
+:maxdepth: 1
+
+Unity <http://www.throwtheswitch.org/unity) (CMock, Ceedling>
+```
   * Pros
     * Pure C (Unity testing framework itself, not test runner)
     * Support for different output formats (including XML for Jenkins)

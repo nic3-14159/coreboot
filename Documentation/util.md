@@ -168,10 +168,14 @@ the documentation `Bash`
 * __xcompile__ - Cross compile setup `Bash`
 ## In depth documentation
 
-* [abuild](util/abuild/index.md)
-* [cbfstool](util/cbfstool/index.md)
-* [ifdtool](util/ifdtool/index.md)
-* [intelp2m](util/intelp2m/index.md)
+```{toctree}
+:maxdepth: 1
+
+abuild <util/abuild/index.md>
+cbfstool <util/cbfstool/index.md>
+ifdtool <util/ifdtool/index.md>
+intelp2m <util/intelp2m/index.md>
+```
 
 ## Generated documentation
 
