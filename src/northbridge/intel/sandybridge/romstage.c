@@ -15,6 +15,8 @@
 #include <southbridge/intel/bd82x6x/pch.h>
 #include <southbridge/intel/common/pmclib.h>
 #include <elog.h>
+#include <pc80/vga.h>
+#include "early_graphics.h"
 
 __weak void mainboard_early_init(int s3resume)
 {
@@ -66,6 +68,14 @@ void mainboard_romstage_entry(void)
 	printk(BIOS_DEBUG, "Back from systemagent_early_init()\n");
 
 	s3resume = southbridge_detect_s3_resume();
+	if (CONFIG(EARLY_GFX_GMA)) {
+		printk(BIOS_DEBUG, "Before early_graphics_init\n");
+		if (!early_graphics_init())
+			printk(BIOS_DEBUG, "early_graphics_init failed!\n");
+		else
+			vga_write_text(VGA_TEXT_CENTER, VGA_TEXT_HORIZONTAL_MIDDLE,
+					(const unsigned char *)"Hello from romstage!");
+	}
 
 	elog_boot_notify(s3resume);
 

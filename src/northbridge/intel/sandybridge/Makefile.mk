@@ -8,6 +8,8 @@ ramstage-y += memmap.c
 ramstage-y += northbridge.c
 ramstage-y += pcie.c
 ramstage-y += gma.c
+romstage-$(CONFIG_EARLY_GFX_GMA) += early_gma.c
+romstage-y += early_graphics.c
 
 ramstage-y += acpi.c
 
