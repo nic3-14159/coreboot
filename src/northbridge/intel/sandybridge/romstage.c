@@ -68,14 +68,7 @@ void mainboard_romstage_entry(void)
 	printk(BIOS_DEBUG, "Back from systemagent_early_init()\n");
 
 	s3resume = southbridge_detect_s3_resume();
-	if (CONFIG(EARLY_GFX_GMA)) {
-		printk(BIOS_DEBUG, "Before early_graphics_init\n");
-		if (!early_graphics_init())
-			printk(BIOS_DEBUG, "early_graphics_init failed!\n");
-		else
-			vga_write_text(VGA_TEXT_CENTER, VGA_TEXT_HORIZONTAL_MIDDLE,
-					(const unsigned char *)"Hello from romstage!");
-	}
+
 
 	elog_boot_notify(s3resume);
 
@@ -88,7 +81,20 @@ void mainboard_romstage_entry(void)
 	if (CONFIG(INTEL_TXT)) {
 		configure_dpr();
 		intel_txt_romstage_init();
+		disable_intel_txt();
 	}
+
+	RCBA16(DISPBDF) = 0x0010;
+	RCBA32_OR(FD2, PCH_ENABLE_DBDF);
+	if (CONFIG(EARLY_GFX_GMA)) {
+		printk(BIOS_DEBUG, "Before early_graphics_init\n");
+		if (!early_graphics_init())
+			printk(BIOS_DEBUG, "early_graphics_init failed!\n");
+		else
+			vga_write_text(VGA_TEXT_CENTER, VGA_TEXT_HORIZONTAL_MIDDLE,
+				(const unsigned char *)"Hello from romstage!");
+	}
+
 
 	perform_raminit(s3resume);
 

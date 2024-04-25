@@ -2,6 +2,9 @@
 
 #include <pc80/vga.h>
 #include <pc80/vga_io.h>
+#include <console/console.h>
+#include <device/mmio.h>
+#include <cpu/x86/tsc.h>
 
 #include <string.h>
 #include "vga.h"
@@ -27,17 +30,17 @@ vga_io_init(void)
 static void
 vga_fb_init(void)
 {
-	vga_sr_write(0x02, 0x03);
-	vga_sr_write(0x03, 0x00);
+	vga_sr_write(0x02, 0x03); /* Enable writes to plane 1:0 */
+	vga_sr_write(0x03, 0x00); /* Character Map: 1st 8KB of plane 2, offset 0 */
 	vga_sr_write(0x04, 0x02); /* access all 256kB */
 
-	vga_gr_write(0x00, 0x00);
-	vga_gr_write(0x01, 0x00);
-	vga_gr_write(0x02, 0x00);
-	vga_gr_write(0x03, 0x00);
-	vga_gr_write(0x04, 0x00);
-	vga_gr_write(0x05, 0x10);
-	vga_gr_write(0x06, 0x0E); /* map at 0xB8000 */
+	vga_gr_write(0x00, 0x00); /* Reset Plane Bytes */
+	vga_gr_write(0x01, 0x00); /* Disable Set/Reset Plane 3:0 */
+	vga_gr_write(0x02, 0x00); /* Color Compare Plane */
+	vga_gr_write(0x03, 0x00); /* Data rotate */
+	vga_gr_write(0x04, 0x00); /* Read Plane Select 0 */
+	vga_gr_write(0x05, 0x10); /* Odd/Even Mode, Read mode 0, Write Mode 0 */
+	vga_gr_write(0x06, 0x0E); /* Text mode, Chain Odd/Even, map at 0xB8000 */
 	vga_gr_write(0x07, 0x00);
 	vga_gr_write(0x08, 0xFF);
 
@@ -51,7 +54,23 @@ vga_fb_init(void)
 static void
 vga_fb_clear(void)
 {
+	//uint64_t start_tick, end_tick;
 	memset((void *)VGA_FB, 0x00, 0x8000);
+	/*
+	printk(BIOS_DEBUG, "Write 0xb8000\n");
+	start_tick = rdtscll();
+	for (uintptr_t i = 0xb8000; i < 0xc0000; i++) {
+		write32((void *)i, 0x1234abcd);
+	}
+	end_tick = rdtscll();
+	printk(BIOS_DEBUG, "fb_clear write 0xb8000: %lld ticks\n", end_tick - start_tick);
+	printk(BIOS_DEBUG, "Dump Graphics Stolen Memory @ 0x80a00000\n");
+	uintptr_t p = 0x80a00000;
+	for (size_t i = 0; i < 256*1024; i += 4) {
+		printk(BIOS_DEBUG, "0x%08lx: %08x\n", p+i, read32((void *)(p + i)));
+	}
+	*/
+
 }
 
 /*
@@ -334,11 +353,16 @@ vga_textmode_init(void)
 	vga_mode_set(640, 648, 680, 776, 792, 800,
 		     400, 407, 412, 414, 442, 449, 320);
 
+	printk(BIOS_DEBUG, "vga_cursor_reset()\n");
 	vga_cursor_reset();
+	printk(BIOS_DEBUG, "vga_frame_set()\n");
 	vga_frame_set(0, 0);
 
+	printk(BIOS_DEBUG, "vga_fb_init()\n");
 	vga_fb_init();
+	printk(BIOS_DEBUG, "vga_fb_clear()\n");
 	vga_fb_clear();
+	printk(BIOS_DEBUG, "vga_font_8x16_load()\n");
 	vga_font_8x16_load();
 
 	vga_sr_mask(0x00, 0x02, 0x02); /* take us out of reset */

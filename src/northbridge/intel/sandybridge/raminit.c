@@ -456,6 +456,7 @@ static void init_dram_ddr3(int s3resume, const u32 cpuid)
 	if (err)
 		die("raminit failed");
 
+
 	/* FIXME: should be hardware revision-dependent. The register only exists on IVB. */
 	mchbar_write32(CHANNEL_HASH, 0x00a030ce);
 
@@ -464,8 +465,8 @@ static void init_dram_ddr3(int s3resume, const u32 cpuid)
 	if (!s3resume && ctrl.ecc_enabled)
 		channel_scrub(&ctrl);
 
-	set_normal_operation(&ctrl);
 
+	set_normal_operation(&ctrl);
 	final_registers(&ctrl);
 
 	/* can't do this earlier because it needs to be done in normal operation */

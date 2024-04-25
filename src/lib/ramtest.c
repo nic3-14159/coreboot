@@ -178,25 +178,34 @@ int ram_check_noprint_nodie(uintptr_t start)
  */
 void quick_ram_check_or_die(uintptr_t dst)
 {
+	printk(BIOS_DEBUG, "quick_ram_check_or_die(0x%lx)\n", dst);
 	int fail = 0;
 	u32 backup;
 	backup = read_phys(dst);
 	write_phys(dst, 0x55555555);
 	phys_memory_barrier();
-	if (read_phys(dst) != 0x55555555)
+	if (read_phys(dst) != 0x55555555) {
+		printk(BIOS_DEBUG, "0x55555555 failed\n");
 		fail = 1;
+	}
 	write_phys(dst, 0xaaaaaaaa);
 	phys_memory_barrier();
-	if (read_phys(dst) != 0xaaaaaaaa)
+	if (read_phys(dst) != 0xaaaaaaaa) {
+		printk(BIOS_DEBUG, "0xaaaaaaaa failed\n");
 		fail = 1;
+	}
 	write_phys(dst, 0x00000000);
 	phys_memory_barrier();
-	if (read_phys(dst) != 0x00000000)
+	if (read_phys(dst) != 0x00000000) {
+		printk(BIOS_DEBUG, "0x00000000 failed\n");
 		fail = 1;
+	}
 	write_phys(dst, 0xffffffff);
 	phys_memory_barrier();
-	if (read_phys(dst) != 0xffffffff)
+	if (read_phys(dst) != 0xffffffff) {
+		printk(BIOS_DEBUG, "0xffffffff failed\n");
 		fail = 1;
+	}
 
 	write_phys(dst, backup);
 	if (fail) {

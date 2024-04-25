@@ -1,4 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
+#define __SIMPLE_DEVICE__
 
 #include <device/pci.h>
 #include <console/console.h>
@@ -24,6 +25,8 @@ static void device_init(void)
 	/* Enable response in IO and MMIO space. */
 	printk(BIOS_DEBUG, "Enable IO/MMIO response\n");
 	pci_or_config16(SA_DEV_IGD, PCI_COMMAND, (PCI_COMMAND_IO | PCI_COMMAND_MEMORY));
+
+	printk(BIOS_DEBUG, "GGC: 0x%04x\n", pci_read_config16(PCI_DEV(0, 0, 0), 0x50));
 }
 
 bool early_graphics_init(void)
@@ -39,6 +42,7 @@ bool early_graphics_init(void)
 	/* Configure display panel. */
 	printk(BIOS_DEBUG, "early_graphics_panel_init()\n");
 	early_graphics_panel_init();
+	printk(BIOS_DEBUG, "done early_graphics_panel_init()\n");
 
 	printk(BIOS_DEBUG, "gma_gfxinit()\n");
 	gma_gfxinit(&ret);
