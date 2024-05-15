@@ -2,14 +2,24 @@
 
 #include <assert.h>
 #include <cpu/x86/msr.h>
+#include <delay.h>
+#include <device/pci.h>
 #include <fsp/util.h>
 #include <intelblocks/cpulib.h>
+#include <intelblocks/early_graphics.h>
 #include <option.h>
+#include <pc80/vga.h>
 #include <soc/iomap.h>
 #include <soc/msr.h>
 #include <soc/pci_devs.h>
 #include <soc/romstage.h>
 #include <soc/soc_chip.h>
+
+#define HOST_BRIDGE	PCI_DEV(0, 0, 0)
+#define IGD	PCI_DEV(0, 2, 0)
+#define GGC		0x50
+#define TOLUD		0xbc
+#define BDSM		0xb0
 
 static void cpu_flex_override(FSP_M_CONFIG *m_cfg)
 {
@@ -132,6 +142,33 @@ void platform_fsp_memory_init_params_cb(FSPM_UPD *mupd, uint32_t version)
 	FSP_M_TEST_CONFIG *m_t_cfg = &mupd->FspmTestConfig;
 
 	config = config_of_soc();
+	if (CONFIG(EARLY_GFX_GMA)) {
+		uint32_t reg = pci_read_config32(HOST_BRIDGE, TOLUD);
+		printk(BIOS_DEBUG, "PCI(0, 0, 0)[TOLUD: %x] = %x\n", TOLUD, reg);
+		reg = (reg & ~0xfff00000) | (0x800 << 20);
+		pci_write_config32(HOST_BRIDGE, TOLUD, reg);
+
+		reg = pci_read_config32(HOST_BRIDGE, BDSM);
+		printk(BIOS_DEBUG, "PCI(0, 0, 0)[BDSM: %x] = %x\n", BDSM, reg);
+		reg = (reg & ~0xfff00000) | (0x7c0 << 20);
+		pci_write_config32(HOST_BRIDGE, BDSM, reg);
+
+		reg = pci_read_config16(HOST_BRIDGE, GGC);
+		printk(BIOS_DEBUG, "PCI(0, 0, 0)[GGC: %x] = %x\n", GGC, reg);
+
+		reg = pci_read_config32(IGD, 0x5c);
+		printk(BIOS_DEBUG, "PCI(0, 2, 0)[BDSM: 0x5c] = %x\n", reg);
+
+                printk(BIOS_DEBUG, "Before early_graphics_init\n");
+                if (!early_graphics_init()) {
+                        printk(BIOS_DEBUG, "early_graphics_init failed!\n");
+		} else {
+                        printk(BIOS_DEBUG, "wait 1 second\n");
+			mdelay(1000);
+                        vga_write_text(VGA_TEXT_CENTER, VGA_TEXT_HORIZONTAL_MIDDLE,
+                                (const unsigned char *)"Hello from romstage!");
+		}
+        }
 
 	soc_memory_init_params(m_cfg, config);
 	soc_peg_init_params(m_cfg, m_t_cfg, config);
@@ -159,6 +196,9 @@ void platform_fsp_memory_init_params_cb(FSPM_UPD *mupd, uint32_t version)
 	/* Set primary graphic device */
 	soc_primary_gfx_config_params(m_cfg, config);
 	m_t_cfg->SkipExtGfxScan = config->SkipExtGfxScan;
+
+	if (CONFIG(HWBASE_STATIC_MMIO))
+		m_cfg->GttMmAdr = CONFIG_GFX_GMA_DEFAULT_MMIO;
 
 	mainboard_memory_init_params(mupd);
 }

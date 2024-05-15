@@ -8,6 +8,7 @@
 #include <intelblocks/pmclib.h>
 #include <intelblocks/smbus.h>
 #include <memory_info.h>
+#include <security/intel/txt/txt.h>
 #include <smbios.h>
 #include <soc/intel/common/smbios.h>
 #include <soc/iomap.h>
@@ -16,6 +17,17 @@
 #include <soc/romstage.h>
 #include <soc/soc_chip.h>
 #include <string.h>
+#include <delay.h>
+#include <device/pci.h>
+#include <intelblocks/early_graphics.h>
+#include <pc80/vga.h>
+
+#define HOST_BRIDGE	PCI_DEV(0, 0, 0)
+#define IGD	PCI_DEV(0, 2, 0)
+#define GGC		0x50
+#define TOLUD		0xbc
+#define BDSM		0xb0
+
 
 #define FSP_SMBIOS_MEMORY_INFO_GUID	\
 {	\
@@ -125,6 +137,11 @@ void mainboard_romstage_entry(void)
 {
 	bool s3wake;
 	struct chipset_power_state *ps;
+	read8((void *)0xfed40000);
+	if (!CONFIG(INTEL_TXT)) {
+		printk(BIOS_DEBUG, "disable_intel_txt()\n");
+                disable_intel_txt();
+	}
 
 	/* Program MCHBAR, DMIBAR, GDXBAR and EDRAMBAR */
 	systemagent_early_init();

@@ -1,5 +1,7 @@
 -- SPDX-License-Identifier: GPL-2.0-only
 
+with HW.Debug;
+
 with HW.GFX;
 with HW.GFX.GMA;
 with HW.GFX.GMA.Display_Probing;
@@ -28,18 +30,25 @@ is
    begin
       lightup_ok := 0;
 
+      pragma Debug (Debug.Put_Line ("HW.GFX.GMA.Initialize()"));
       HW.GFX.GMA.Initialize (Success => success);
+      pragma Debug (Debug.Put_Line ("Done HW.GFX.GMA.Initialize()"));
 
       if success then
          ports := Mainboard.ports;
+         pragma Debug (Debug.Put_Line ("HW.GFX.GMA.Display_Probing.Scan_Ports()"));
          HW.GFX.GMA.Display_Probing.Scan_Ports
            (Configs  => configs,
             Ports    => ports,
             Max_Pipe => Primary);
+         pragma Debug (Debug.Put_Line ("Done HW.GFX.GMA.Display_Probing.Scan_Ports()"));
 
          if configs (Primary).Port /= Disabled then
+	    pragma Debug (Debug.Put_Line ("HW.GFX.GMA.Power_Up_VGA()"));
             HW.GFX.GMA.Power_Up_VGA;
+	    pragma Debug (Debug.Put_Line ("vga_io_init"));
             vga_io_init;
+	    pragma Debug (Debug.Put_Line ("vga_textmode_init"));
             vga_textmode_init;
 
             -- override probed framebuffer config
