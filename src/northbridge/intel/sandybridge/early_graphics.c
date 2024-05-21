@@ -19,8 +19,10 @@ static void device_init(void)
 	pci_and_config16(SA_DEV_IGD, PCI_COMMAND, ~(PCI_COMMAND_IO | PCI_COMMAND_MEMORY));
 
 	/* Program IGD Base Address Register 0. */
-	printk(BIOS_DEBUG, "Program IGD BAR0\n");
+	printk(BIOS_DEBUG, "Program IGD GTTMMADR\n");
 	pci_write_config32(SA_DEV_IGD, PCI_BASE_ADDRESS_0, CONFIG_GFX_GMA_DEFAULT_MMIO);
+	printk(BIOS_DEBUG, "Program IGD GMADR\n");
+	pci_write_config32(SA_DEV_IGD, PCI_BASE_ADDRESS_2, 0xe0000000);
 
 	/* Enable response in IO and MMIO space. */
 	printk(BIOS_DEBUG, "Enable IO/MMIO response\n");
