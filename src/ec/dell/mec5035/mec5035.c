@@ -94,6 +94,41 @@ void mec5035_control_radio(enum ec_radio_dev dev, enum ec_radio_state state)
 	ec_command(CMD_RADIO_CTRL);
 }
 
+void mec5035_acpi_enable(void)
+{
+	u8 buf[1] = {0};
+	/*
+	write_mailbox_regs(buf, 2, 1);
+	ec_command(0x85);
+	*/
+	buf[0] = 1;
+	write_mailbox_regs(buf, 2, 1);
+	ec_command(CMD_ACPI);
+	/*
+	buf[0] = 1;
+	write_mailbox_regs(buf, 2, 1);
+	ec_command(0xa0);
+	buf[0] = 1;
+	write_mailbox_regs(buf, 2, 1);
+	ec_command(0x9e);
+	buf[0] = 1;
+	write_mailbox_regs(buf, 2, 1);
+	ec_command(0x9f);
+	buf[0] = 2;
+	write_mailbox_regs(buf, 2, 1);
+	ec_command(0x9f);
+	buf[0] = 2;
+	write_mailbox_regs(buf, 2, 1);
+	ec_command(0xa0);
+	buf[0] = 2;
+	write_mailbox_regs(buf, 2, 1);
+	ec_command(0x9e);
+	buf[0] = 0;
+	write_mailbox_regs(buf, 2, 1);
+	ec_command(0x63);
+	*/
+}
+
 void mec5035_cmd_bf(u8 i)
 {
 	/*
