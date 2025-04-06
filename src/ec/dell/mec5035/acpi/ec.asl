@@ -27,13 +27,31 @@ Device (EC)
 	OperationRegion(ERAM, EmbeddedControl, 0, 256)
 	Field(ERAM, ByteAcc, NoLock, Preserve)
 	{
+		Offset (0x00),
+				ACPR, 1, /* AC Present */
+				BPRT, 1, /* Battery Present */
 		Offset (0x05),
 				/* SCI Enable */
 				SCIE, 8,
 	}
 
+	/* Last Battery Present State */
+	Name (BPRS, 0)
+
+	/* Last Battery Status State */
+	Name (BSTL, 0)
+
 	Method (_Q66)
 	{
+		if (BPRT != BPRS) {
+			BPRS = BPRT
+			Notify(BAT0, 0x81)
+		}
+		if (BSTL != BAST) {
+			BSTL = BAST
+			Notify(BAT0, 0x80)
+		}
 	}
 
+	#include "battery.asl"
 }
