@@ -30,10 +30,15 @@ Device (EC)
 		Offset (0x00),
 				ACPR, 1, /* AC Present */
 				BPRT, 1, /* Battery Present */
+				    , 2,
+				LIDS, 1, /* Lid State */
 		Offset (0x05),
 				/* SCI Enable */
 				SCIE, 8,
 	}
+
+	/* Last Lid State */
+	Name (LIDL, 1)
 
 	/* Last Battery Present State */
 	Name (BPRS, 0)
@@ -51,7 +56,12 @@ Device (EC)
 			BSTL = BAST
 			Notify(BAT0, 0x80)
 		}
+		if (LIDS != LIDL) {
+			LIDL = LIDS
+			Notify(LID, 0x80)
+		}
 	}
 
 	#include "battery.asl"
+	#include "lid.asl"
 }
