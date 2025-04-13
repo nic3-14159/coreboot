@@ -21,6 +21,15 @@ Device (EC)
 		}
 	}
 
+	Method (EPTS, 1)
+	{
+		if (Arg0 == 3) {
+			EMXW(2, 3)
+			EMXW(3, 0)
+			EMXC(0x64)
+		}
+	}
+
 	/* EmbeddedControl Mutex */
 	Mutex (ECLK, 0)
 
