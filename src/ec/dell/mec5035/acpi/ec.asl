@@ -24,6 +24,23 @@ Device (EC)
 	/* EmbeddedControl Mutex */
 	Mutex (ECLK, 0)
 
+	/* Radio Control */
+	Method (RADC, 1)
+	{
+		EMXW(2, 0) /* WLAN */
+		EMXW(3, 2) /* Set state */
+		EMXW(4, Arg0)
+		EMXC(0x2b)
+		EMXW(2, 1) /* WWAN */
+		EMXW(3, 2) /* Set state */
+		EMXW(4, Arg0)
+		EMXC(0x2b)
+		EMXW(2, 2) /* Bluetooth */
+		EMXW(3, 2) /* Set state */
+		EMXW(4, Arg0)
+		EMXC(0x2b)
+	}
+
 	OperationRegion(ERAM, EmbeddedControl, 0, 256)
 	Field(ERAM, ByteAcc, NoLock, Preserve)
 	{
@@ -60,6 +77,7 @@ Device (EC)
 			LIDL = LIDS
 			Notify(LID, 0x80)
 		}
+		RADC(SCIE & 1)
 	}
 
 	#include "ec_mailbox.asl"
