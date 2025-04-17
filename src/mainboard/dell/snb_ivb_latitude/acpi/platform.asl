@@ -8,5 +8,5 @@ Method(_WAK, 1)
 
 Method(_PTS,1)
 {
-	/* FIXME: EC support  */
+	\_SB.PCI0.LPCB.EC.EPTS(Arg0)
 }
