@@ -63,6 +63,7 @@ Device (EC)
 	}
 
 	#include "ec_mailbox.asl"
+	#include "ac.asl"
 	#include "battery.asl"
 	#include "lid.asl"
 	#include "thermal.asl"
