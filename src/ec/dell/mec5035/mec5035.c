@@ -94,6 +94,25 @@ void mec5035_control_radio(enum ec_radio_dev dev, enum ec_radio_state state)
 	ec_command(CMD_RADIO_CTRL);
 }
 
+void mec5035_cmd_bf(u8 i)
+{
+	/*
+	 * If this command isn't sent, the EC shuts down the system as soon as
+	 * the CPU temperature reaches about 87 degrees. It is unknown exactly
+	 * what the parameters represent. The Google Wilco EC code, which runs
+	 * on Latitude Chromebooks and shares some commands with the standard
+	 * Latitude EC code, suggests command 0xBF tells the EC the CPUID, but
+	 * the values observed in LPC bus logs don't seem to match any CPUID
+	 * values of the normal Latitudes this was tested with.
+	 * Observed i values:
+	 * - E6430 (Ivy Bridge): 0x7
+	 * - M6800 (Haswell): 0x14
+	 */
+	u8 buf[3] = {i, 0, 0};
+	write_mailbox_regs(buf, 2, 3);
+	ec_command(CMD_BF);
+}
+
 void mec5035_early_init(void)
 {
 	/* If this isn't sent the EC shuts down the system after about 15

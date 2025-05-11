@@ -10,6 +10,7 @@
 enum mec5035_cmd {
 	CMD_MOUSE_TP = 0x1a,
 	CMD_RADIO_CTRL = 0x2b,
+	CMD_BF = 0xbf,
 	CMD_CPU_OK = 0xc2,
 };
 
@@ -37,5 +38,6 @@ u8 mec5035_mouse_touchpad(enum ec_mouse_setting setting);
 void mec5035_cpu_ok(void);
 void mec5035_early_init(void);
 void mec5035_control_radio(enum ec_radio_dev device, enum ec_radio_state state);
+void mec5035_cmd_bf(u8 i);
 
 #endif /* _EC_DELL_MEC5035_H_ */
